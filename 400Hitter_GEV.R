@@ -1,17 +1,17 @@
 # install.packages("Lahman")
 # install.packages("dplyr")
-# install.packages("fExtremes")
+install.packages("fExtremes")
 # install.packages("ggplot2")
-# install.packages("extRemes")
+install.packages("extRemes")
 # install.packagse("Lahman", "dplyr", "fExtremes", "ggplot2", "extRemes", "evd")
-# library(ggplot2)
-# library(dplyr)
-# library(Lahman)
-# library(fExtremes)
-# library(extRemes)
+library(ggplot2)
+library(dplyr)
+library(Lahman)
+library(fExtremes)
+library(extRemes)
 
 #Load data
-data(package = 'Lahman')
+# data(package = 'Lahman')
 data("Batting")
 
 #Data Description
@@ -33,16 +33,16 @@ data("Batting")
 # SF : Sacrifice files
 # GIDP : Grounded into double plays
 
-
+Lahman::Salaries
 #Data Handling
 batting <- battingStats()
 #add salary
 batting <- merge(batting, 
-                 Salaries[,c("playerID", "yearID", "teamID", "salary")], 
+                 Lahman::Salaries[,c("playerID", "yearID", "teamID", "salary")], 
                  by=c("playerID", "yearID", "teamID"), all.x=TRUE)
 
 #Add name, age and bat hand information:
-masterInfo <- Master[, c('playerID', 'birthYear', 'birthMonth',
+masterInfo <- Lahman::Master[, c('playerID', 'birthYear', 'birthMonth',
                          'nameLast', 'nameFirst', 'bats')]
 batting <- merge(batting, masterInfo, all.x = TRUE)
 batting$age <- with(batting, yearID - birthYear -
@@ -51,9 +51,9 @@ batting$age <- with(batting, yearID - birthYear -
 batting <- arrange(batting, playerID, yearID, stint)
 
 #filter for eligible hitters over PA > 450 after 1900.
-eligibleHitters <- batting %>% filter(yearID >= 1900 & PA > 450)
+eligibleHitters <- batting %>% dplyr::filter(yearID >= 1900 & PA > 450)
 
-topHitters  <- eligibleHitters %>% group_by(yearID) %>%filter(BA == max(BA)|BA > .400)
+topHitters  <- eligibleHitters %>% group_by(yearID) %>%dplyr::filter(BA == max(BA)|BA > .400)
 
 # Create a factor variable to distinguish the .400 hitters
 topHitters$ba400 <- with(topHitters, BA >= 0.400)
@@ -86,10 +86,26 @@ ggplot(topHitters, aes(x = yearID, y = BA)) +
   geom_smooth(method = "loess")
 
 
+#Pitcher
+Lahman::Pitching
+#Data Handling
+batting <- battingStats()9
+#add salary
+batting <- merge(batting, 
+                 Lahman::Salaries[,c("playerID", "yearID", "teamID", "salary")], 
+                 by=c("playerID", "yearID", "teamID"), all.x=TRUE)
+
+#Add name, age and bat hand information:
+masterInfo <- Lahman::Master[, c('playerID', 'birthYear', 'birthMonth',
+                                 'nameLast', 'nameFirst', 'bats')]
+batting <- merge(batting, masterInfo, all.x = TRUE)
+batting$age <- with(batting, yearID - birthYear -
+                      ifelse(birthMonth < 10, 0, 1))
+#sorting
+batting <- arrange(batting, playerID, yearID, stint)
+
 ###########
 # EVD, fExtreme, extRemes
 gev_fit_model <- extRemes::fevd(topHitters$BA, type = "GEV", method = "MLE")
 summary(gev_fit_model)
 plot(gev_fit_model)
-
-
